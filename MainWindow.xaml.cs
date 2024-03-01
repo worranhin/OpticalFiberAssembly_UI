@@ -82,7 +82,7 @@ namespace OpticalFiberAssembly
 
         private void BaudBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (baudBox.Text != null)
+            if (baudBox.SelectedItem != null)
             {
                 string s = baudBox.SelectedItem as string;
                 try

@@ -5,27 +5,31 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:OpticalFiberAssembly"
         mc:Ignorable="d"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        Background="{DynamicResource MaterialDesignPaper}"
+        TextElement.FontWeight="Medium"
+        TextElement.FontSize="14"        
         Title="光纤装配系统" Height="450" Width="800">
     <Window.Resources>
-        <Style TargetType="{x:Type Button}">
-            <Setter Property="Padding" Value="3" />
-            <Setter Property="FontSize" Value="15" />
-        </Style>
         <Style TargetType="StackPanel">
             <Setter Property="Margin" Value="0,0,0,10" />
         </Style>
-        <Style TargetType="TextBlock">
+        <Style TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignTextBlock}">
             <Setter Property="VerticalAlignment" Value="Bottom" />
             <Setter Property="FontSize" Value="15" />
+        </Style>
+        <Style TargetType="ComboBox" BasedOn="{StaticResource MaterialDesignComboBox}">
+            <Setter Property="MinWidth" Value="65" />
         </Style>
     </Window.Resources>
     <StackPanel Margin="10">
         <StackPanel Orientation="Horizontal">
             <TextBlock Margin="0,0,5,0">端口</TextBlock>
-            <ComboBox x:Name="portBox" SelectionChanged="PortBox_SelectionChanged" MinWidth="65"/>
+            <ComboBox x:Name="portBox" SelectionChanged="PortBox_SelectionChanged" />
             <Button x:Name="PortRefresh" Click="PortRefresh_Click">刷新</Button>
             <TextBlock Margin="10,0,5,0">波特率</TextBlock>
-            <ComboBox x:Name="baudBox" SelectionChanged="BaudBox_SelectionChanged" MinWidth="65">
+            <ComboBox x:Name="baudBox" SelectionChanged="BaudBox_SelectionChanged">
                 <ComboBoxItem>9600</ComboBoxItem>
                 <ComboBoxItem>115200</ComboBoxItem>
             </ComboBox>
@@ -58,8 +62,8 @@
                 <Button>后退</Button>
             </StackPanel>
             <StackPanel Orientation="Horizontal">
-                <Button Background="GreenYellow" Width="50" Click="Button_Click">运行</Button>
-                <Button Margin="5,0,0,0" Background="Red" Width="50">停止</Button>
+                <Button Click="Button_Click" Style="{StaticResource MaterialDesignRaisedLightButton}">运行</Button>
+                <Button Margin="5,0,0,0" Style="{StaticResource MaterialDesignRaisedAccentButton}">停止</Button>
             </StackPanel>
         </StackPanel>
         <ScrollViewer MaxHeight="160" VerticalScrollBarVisibility="Auto">
