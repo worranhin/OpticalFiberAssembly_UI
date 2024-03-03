@@ -86,8 +86,8 @@
                     <Button>后退</Button>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
-                    <Button Style="{StaticResource MaterialDesignRaisedLightButton}">运行</Button>
-                    <Button Margin="5,0,0,0" Style="{StaticResource MaterialDesignRaisedAccentButton}">停止</Button>
+                    <Button Click="BtnRun_Click" Style="{StaticResource MaterialDesignRaisedLightButton}">运行</Button>
+                    <Button Click="BtnStop_Click" Margin="5,0,0,0" Style="{StaticResource MaterialDesignRaisedAccentButton}">停止</Button>
                 </StackPanel>
             </StackPanel>
         </GroupBox>

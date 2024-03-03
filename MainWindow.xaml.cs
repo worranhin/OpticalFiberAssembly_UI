@@ -26,13 +26,22 @@ namespace OpticalFiberAssembly
         SerialPort serialPort;
         Thread readThread;
         bool readThreadOn;
+        Stepper stepperX;
+        CancellationTokenSource readTaskCancelSource;
+        CancellationToken readTaskCancelToken;
+        Task readTask;
 
         public MainWindow()
         {
             InitializeComponent();
 
+            readTaskCancelSource = new CancellationTokenSource();
+            readTaskCancelToken = readTaskCancelSource.Token;
+
+
             GetPorts();
             serialPort = new SerialPort("COM10", 9600);
+            stepperX = new Stepper(1, serialPort);
             readThread = new Thread(ReadSerial);
         }
 
@@ -47,8 +56,13 @@ namespace OpticalFiberAssembly
 
         private void ReadSerial()
         {
-            while (readThreadOn)
+            readTaskCancelToken.ThrowIfCancellationRequested();
+            while (true)
             {
+                readTaskCancelToken.ThrowIfCancellationRequested();  // 抛出取消异常并终止
+                    if (serialPort.BytesToRead < 2)
+                        continue;
+
                 try
                 {
                     // 合法性判断
@@ -56,7 +70,7 @@ namespace OpticalFiberAssembly
                     if (cmd == -1)
                         continue;
 
-                    // 处理异常
+                    // 处理错误代码
                     int ec = serialPort.ReadByte();
                     if (ec == -1)
                         continue;
@@ -70,6 +84,8 @@ namespace OpticalFiberAssembly
                     if ((byte)(cmd & 0x0f) == (byte)CmdCode.GET_STATUS)
                     {
                         string message = serialPort.ReadLine();
+
+                        readTaskCancelToken.ThrowIfCancellationRequested();
 
                         if (message != null)
                         {
@@ -114,14 +130,14 @@ namespace OpticalFiberAssembly
                     }
                     else
                     {
-                        DebugMessage("Command: " + cmd.ToString());
+                        DebugMessage("Command: " + cmd.ToString() + "\n");
                     }
                 }
                 catch (TimeoutException) { }
-                catch (OperationCanceledException) { }
+                //catch (OperationCanceledException) {
+                //    //return;
+                //}
             }
-
-            DebugMessage("Read thread off.");
         }
 
         private void UpdateStatus()
@@ -180,27 +196,91 @@ namespace OpticalFiberAssembly
         {
             if (serialPort.IsOpen)
             {
-                //readThread.Join();
-                readThreadOn = false;
-                serialPort.Close();
+                readTaskCancelSource.Cancel();  // 取消任务
+
+                try
+                {
+                    readTask.Wait(2000);
+                }
+                catch (AggregateException except)
+                {
+                    DebugMessage($"{nameof(AggregateException)} thrown with message: {except.Message}\n");
+                }
+                catch (OperationCanceledException except)
+                {
+                    DebugMessage($"{nameof(OperationCanceledException)} thrown with message: {except.Message}\n");
+                }
+                finally
+                {
+                    readTaskCancelSource.Dispose();
+                    serialPort.Close();
+                }
+
+                // UI 处理
                 btnConnect.Content = "连接";
-                debugBlock.Text += "serial closed\n";
+                DebugMessage("serial closed\n");
             }
             else
             {
                 serialPort.Open();
-                readThreadOn = true;
-                readThread.Start();  // TODO: 重新连接会抛出异常
+                stepperX.CommSerial = serialPort;  // 设置电机控制的端口
+
+                // 创建 Task 实例并运行
+                readTaskCancelSource = new CancellationTokenSource();
+                readTaskCancelToken = readTaskCancelSource.Token;
+                readTask = new Task(() => ReadSerial(), readTaskCancelToken, TaskCreationOptions.LongRunning);
+                readTask.Start();
+
+                // UI 处理
                 btnConnect.Content = "断开连接";
-                debugBlock.Text += "serial opened\n";
-                Console.WriteLine("Port name:{0}, baud rate:{1}",
-                    serialPort.PortName, serialPort.BaudRate);
+                DebugMessage("serial opened\n");
+            }
+        }
+
+        private async void BtnConnect_Click_test(object sender, RoutedEventArgs e)
+        {
+            if (!serialPort.IsOpen)
+            {
+                serialPort.Open();
+                readTaskCancelSource = new CancellationTokenSource();
+                readTaskCancelToken = readTaskCancelSource.Token;
+                readTask = Task.Run(() => ReadSerial(), readTaskCancelSource.Token);
+                DebugMessage("reading\n");
+            }
+            else
+            {
+                readTaskCancelSource.Cancel();
+
+                try
+                {
+                    await readTask;
+                }
+                catch (OperationCanceledException except)
+                {
+                    DebugMessage($"{nameof(OperationCanceledException)} thrown with message: {except.Message}\n");
+                }
+                finally
+                {
+                    readTaskCancelSource.Dispose();
+                    serialPort.Close();
+                    DebugMessage("read close\n");
+                }
             }
         }
 
         private void BtnStatus_Click(object sender, RoutedEventArgs e)
         {
             UpdateStatus();
+        }
+
+        private void BtnRun_Click(object sender, RoutedEventArgs e)
+        {
+            stepperX.Run();
+        }
+
+        private void BtnStop_Click(object sender, RoutedEventArgs e)
+        {
+            stepperX.Stop();
         }
     }
 }
