@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -25,24 +26,28 @@ namespace OpticalFiberAssembly
     {
         SerialPort serialPort;
         Thread readThread;
-        bool readThreadOn;
         Stepper stepperX;
         CancellationTokenSource readTaskCancelSource;
         CancellationToken readTaskCancelToken;
         Task readTask;
+        bool isUpdatingStatus;
+        System.Timers.Timer statusTimer;
 
         public MainWindow()
         {
             InitializeComponent();
 
-            readTaskCancelSource = new CancellationTokenSource();
-            readTaskCancelToken = readTaskCancelSource.Token;
-
-
             GetPorts();
             serialPort = new SerialPort("COM10", 9600);
             stepperX = new Stepper(1, serialPort);
             readThread = new Thread(ReadSerial);
+
+            // 初始化更新状态信息的定时器
+            statusTimer = new System.Timers.Timer(1000);
+            statusTimer.Elapsed += StatusTimerEvent;
+            statusTimer.AutoReset = true;
+
+            isUpdatingStatus = false;
         }
 
 
@@ -60,8 +65,8 @@ namespace OpticalFiberAssembly
             while (true)
             {
                 readTaskCancelToken.ThrowIfCancellationRequested();  // 抛出取消异常并终止
-                    if (serialPort.BytesToRead < 2)
-                        continue;
+                if (serialPort.BytesToRead < 2)
+                    continue;
 
                 try
                 {
@@ -130,7 +135,7 @@ namespace OpticalFiberAssembly
                     }
                     else
                     {
-                        DebugMessage("Command: " + cmd.ToString() + "\n");
+                        DebugMessage("Command: " + ((CmdCode)cmd).ToString() + "\n");
                     }
                 }
                 catch (TimeoutException) { }
@@ -140,6 +145,9 @@ namespace OpticalFiberAssembly
             }
         }
 
+        /// <summary>
+        /// 更新状态
+        /// </summary>
         private void UpdateStatus()
         {
             byte[] code;
@@ -151,11 +159,25 @@ namespace OpticalFiberAssembly
             serialPort.Write(code, 0, code.Length);
         }
 
+        /// <summary>
+        /// 用于更新状态定时器的中断事件
+        /// </summary>
+        /// <param name="source"></param>
+        /// <param name="e"></param>
+        private void StatusTimerEvent(Object source, ElapsedEventArgs e)
+        {
+            UpdateStatus();
+        }
+
         private static void HandleError(ErrorCode code)
         {
             MessageBox.Show($"error: {code}");
         }
 
+        /// <summary>
+        /// 用于在界面中打印调试信息
+        /// </summary>
+        /// <param name="message">待打印的信息</param>
         private void DebugMessage(string message)
         {
             // 使用Dispatcher将操作调度到UI线程上
@@ -217,6 +239,8 @@ namespace OpticalFiberAssembly
                 }
 
                 // UI 处理
+                portBox.IsEnabled = true;
+                baudBox.IsEnabled = true;
                 btnConnect.Content = "连接";
                 DebugMessage("serial closed\n");
             }
@@ -232,50 +256,51 @@ namespace OpticalFiberAssembly
                 readTask.Start();
 
                 // UI 处理
+                portBox.IsEnabled = false;
+                baudBox.IsEnabled = false;
                 btnConnect.Content = "断开连接";
                 DebugMessage("serial opened\n");
             }
         }
 
-        private async void BtnConnect_Click_test(object sender, RoutedEventArgs e)
-        {
-            if (!serialPort.IsOpen)
-            {
-                serialPort.Open();
-                readTaskCancelSource = new CancellationTokenSource();
-                readTaskCancelToken = readTaskCancelSource.Token;
-                readTask = Task.Run(() => ReadSerial(), readTaskCancelSource.Token);
-                DebugMessage("reading\n");
-            }
-            else
-            {
-                readTaskCancelSource.Cancel();
-
-                try
-                {
-                    await readTask;
-                }
-                catch (OperationCanceledException except)
-                {
-                    DebugMessage($"{nameof(OperationCanceledException)} thrown with message: {except.Message}\n");
-                }
-                finally
-                {
-                    readTaskCancelSource.Dispose();
-                    serialPort.Close();
-                    DebugMessage("read close\n");
-                }
-            }
-        }
-
         private void BtnStatus_Click(object sender, RoutedEventArgs e)
         {
-            UpdateStatus();
+            if(!isUpdatingStatus)
+            {
+                statusTimer.Start();
+                btnStatus.Content = "停止更新状态";
+                btnStatus.Style = this.FindResource("MaterialDesignRaisedLightButton") as Style;
+                isUpdatingStatus = true;
+            } else
+            {
+                statusTimer.Stop();
+                btnStatus.Content = "开始更新状态";
+                btnStatus.Style = this.FindResource("MaterialDesignRaisedButton") as Style;
+                isUpdatingStatus = false;
+            }
         }
 
         private void BtnRun_Click(object sender, RoutedEventArgs e)
         {
-            stepperX.Run();
+            try
+            {
+                stepperX.Run();
+                stepperX.SetSpeed(byte.Parse(xSpeedBox.Text));
+                stepperX.SetAcceleration(byte.Parse(xAccBox.Text));
+                stepperX.SetTarget(byte.Parse(xTarBox.Text));
+            }
+            catch (FormatException)
+            {
+                MessageBox.Show("请输入正确的格式");
+            }
+            catch (OverflowException)
+            {
+                MessageBox.Show("数值设置过大");
+            }
+            catch (InvalidOperationException)
+            {
+                MessageBox.Show("串口未打开");
+            }
         }
 
         private void BtnStop_Click(object sender, RoutedEventArgs e)

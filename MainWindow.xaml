@@ -10,7 +10,7 @@
         Background="{DynamicResource MaterialDesignPaper}"
         TextElement.FontWeight="Medium"
         TextElement.FontSize="14"        
-        Title="光纤装配系统" Height="450" Width="800">
+        Title="光纤装配系统" Height="600" Width="800">
     <Window.Resources>
         <Style TargetType="StackPanel">
             <Setter Property="Margin" Value="0,0,0,10" />
@@ -39,7 +39,7 @@
             <TextBlock Margin="10,0,0,0">状态</TextBlock>
             <TextBlock Margin="5,0,0,0" x:Name="statusText">Lost</TextBlock>
             <Button x:Name="btnConnect" Click="BtnConnect_Click">连接</Button>
-            <Button x:Name="btnStatus" Click="BtnStatus_Click">获取状态</Button>
+            <Button x:Name="btnStatus" Click="BtnStatus_Click">开始更新状态</Button>
         </StackPanel>
         <GroupBox Header="三自由度平移台">
             <StackPanel>
