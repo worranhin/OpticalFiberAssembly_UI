@@ -58,6 +58,7 @@
                     <TextBlock FontSize="10">（单位：mm）</TextBlock>
                     <Button Margin="5,0" x:Name="xForwardBtn" Click="BtnForward_Click">前进</Button>
                     <Button Click="BtnBackward_Click">后退</Button>
+                    <Button Click="BtnZero_Click">置零</Button>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Margin="0,0,10,0">Y</TextBlock>
@@ -74,6 +75,7 @@
                     <TextBlock FontSize="10">（单位：mm）</TextBlock>
                     <Button Margin="5,0">前进</Button>
                     <Button>后退</Button>
+                    <Button Click="BtnZero_Click">置零</Button>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Margin="0,0,10,0">Z</TextBlock>
@@ -90,6 +92,7 @@
                     <TextBlock FontSize="10">（单位：mm）</TextBlock>
                     <Button Margin="5,0">前进</Button>
                     <Button>后退</Button>
+                    <Button Click="BtnZero_Click">置零</Button>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal">
                     <Button Click="BtnRun_Click" Style="{StaticResource MaterialDesignRaisedLightButton}">运行</Button>

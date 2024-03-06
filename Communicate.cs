@@ -8,7 +8,7 @@ namespace OpticalFiberAssembly
 {
     internal class Communicate
     {
-        public enum CommunicateMode { STOP, RUN, RUN_SPEED, STATUS };
+        public enum CommunicateMode { STOP, RUN, RUN_SPEED, STATUS, Zero };
 
         public CommunicateMode Mode { get; set; } = CommunicateMode.STOP;
         public float? Speed { get; set; } = null;

@@ -439,5 +439,23 @@ namespace OpticalFiberAssembly
                 xBackwarding = false;
             }
         }
+
+        private void BtnZero_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var comm = new Communicate
+                {
+                    Mode = Communicate.CommunicateMode.Zero
+                };
+                string mes = JsonSerializer.Serialize<Communicate>(comm);
+                serialPort.WriteLine(mes);
+                DebugMessage(mes + '\n');
+            }
+            catch (InvalidOperationException)
+            {
+                MessageBox.Show("串口未打开");
+            }
+        }
     }
 }
