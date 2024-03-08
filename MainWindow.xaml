@@ -67,10 +67,6 @@
                     <TextBox x:Name="xPosBox" IsEnabled="False"/>
                     <TextBlock>速度</TextBlock>
                     <TextBox x:Name="xSpeedBox"/>
-                    <TextBlock>最大速度</TextBlock>
-                    <TextBox x:Name="xMaxSpeedBox"/>
-                    <TextBlock>加速度</TextBlock>
-                    <TextBox x:Name="xAccBox"/>
                     <TextBlock>目标位置</TextBlock>
                     <TextBox x:Name="xTarBox"/>
                     <TextBlock FontSize="10">（单位：mm）</TextBlock>
@@ -84,10 +80,6 @@
                     <TextBox x:Name="yPosBox" IsEnabled="False"/>
                     <TextBlock>速度</TextBlock>
                     <TextBox x:Name="ySpeedBox"/>
-                    <TextBlock>最大速度</TextBlock>
-                    <TextBox x:Name="yMaxSpeedBox"/>
-                    <TextBlock>加速度</TextBlock>
-                    <TextBox x:Name="yAccBox"/>
                     <TextBlock>目标位置</TextBlock>
                     <TextBox x:Name="yTarBox"/>
                     <TextBlock FontSize="10">（单位：mm）</TextBlock>
@@ -101,10 +93,6 @@
                     <TextBox x:Name="zPosBox" IsEnabled="False"/>
                     <TextBlock>速度</TextBlock>
                     <TextBox x:Name="zSpeedBox"/>
-                    <TextBlock>最大速度</TextBlock>
-                    <TextBox x:Name="zMaxSpeedBox"/>
-                    <TextBlock>加速度</TextBlock>
-                    <TextBox x:Name="zAccBox"/>
                     <TextBlock>目标位置</TextBlock>
                     <TextBox x:Name="zTarBox"/>
                     <TextBlock FontSize="10">（单位：mm）</TextBlock>

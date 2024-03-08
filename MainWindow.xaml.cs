@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Ports;
 using System.Linq;
 using System.Text;
@@ -25,26 +26,20 @@ namespace OpticalFiberAssembly
     public partial class MainWindow : Window
     {
         SerialPort serialPort;
-        Thread readThread;
         Stepper stepperX;
         CancellationTokenSource readTaskCancelSource;
         CancellationToken readTaskCancelToken;
         Task readTask;
         bool isUpdatingStatus;
         System.Timers.Timer statusTimer;
-        bool xForwarding = false;
-        bool xBackwarding = false;
-        bool yForwarding = false;
-        bool yBackwarding = false;
-        bool zForwarding = false;
-        bool zBackwarding = false;
 
-        bool[] forwardFlag;
-        bool[] backwardFlag;
+        bool[] forwardFlag = new bool[3];
+        bool[] backwardFlag = new bool[3];
         TextBox[] speedBox;
-        TextBox[] maxSpeedBox;
-        TextBox[] accBox;
+        //TextBox[] maxSpeedBox;
+        //TextBox[] accBox;
         TextBox[] targetBox;
+        TextBox[] positionBox;
 
 
         public MainWindow()
@@ -53,18 +48,15 @@ namespace OpticalFiberAssembly
 
             // 变量初始化
             isUpdatingStatus = false;
-            forwardFlag = [xForwarding, yForwarding, zForwarding];
-            backwardFlag = [xBackwarding, yBackwarding, zBackwarding];
+            Array.Fill<bool>(forwardFlag, false);
+            Array.Fill<bool>(backwardFlag, false);
             speedBox = [xSpeedBox, ySpeedBox, zSpeedBox];
-            maxSpeedBox = [xMaxSpeedBox, yMaxSpeedBox, zMaxSpeedBox];
-            accBox = [xAccBox, yAccBox, zAccBox];
             targetBox = [xTarBox, yTarBox, zTarBox];
-
+            positionBox = [xPosBox, yPosBox, zPosBox];
 
             GetPorts();
             serialPort = new SerialPort("COM10", 115200);
             stepperX = new Stepper(1, serialPort);
-            readThread = new Thread(ReadSerial);
 
             // 初始化更新状态信息的定时器
             statusTimer = new System.Timers.Timer(1000);  // 测过到 200 ms 就会因通讯太频繁而影响正常运行
@@ -88,11 +80,11 @@ namespace OpticalFiberAssembly
             while (true)
             {
                 readTaskCancelToken.ThrowIfCancellationRequested();  // 抛出取消异常并终止
-                if (serialPort.BytesToRead < 2)
-                    continue;
 
                 try
                 {
+                    if (serialPort.BytesToRead < 2)
+                        continue;
 
                     string inMes = serialPort.ReadLine();
                     Communicate com = JsonSerializer.Deserialize<Communicate>(inMes);
@@ -108,44 +100,12 @@ namespace OpticalFiberAssembly
                         {
                             Communicate cs = JsonSerializer.Deserialize<Communicate>(mes);
                             uint deviceId = cs.DeviceId;
-                            switch (deviceId)
+                            Application.Current.Dispatcher.Invoke(new Action(() =>
                             {
-                                case 1:
-                                    Application.Current.Dispatcher.Invoke(new Action(() =>
-                                    {
-                                        xPosBox.Text = cs.Position.ToString();
-                                        xSpeedBox.Text = cs.Speed.ToString();
-                                        xMaxSpeedBox.Text = cs.MaxSpeed.ToString();
-                                        xAccBox.Text = cs.Acceleration.ToString();
-                                        xTarBox.Text = cs.Target.ToString();
-                                    }));
-                                    break;
-
-                                case 2:
-                                    Application.Current.Dispatcher.Invoke(new Action(() =>
-                                    {
-                                        yPosBox.Text = cs.Position.ToString();
-                                        ySpeedBox.Text = cs.Speed.ToString();
-                                        yMaxSpeedBox.Text = cs.MaxSpeed.ToString();
-                                        yAccBox.Text = cs.Acceleration.ToString();
-                                        yTarBox.Text = cs.Target.ToString();
-                                    }));
-                                    break;
-
-                                case 3:
-                                    Application.Current.Dispatcher.Invoke(new Action(() =>
-                                    {
-                                        zPosBox.Text = cs.Position.ToString();
-                                        zSpeedBox.Text = cs.Speed.ToString();
-                                        zMaxSpeedBox.Text = cs.MaxSpeed.ToString();
-                                        zAccBox.Text = cs.Acceleration.ToString();
-                                        zTarBox.Text = cs.Target.ToString();
-                                    }));
-                                    break;
-
-                                default:
-                                    break;
-                            }
+                                positionBox[deviceId - 1].Text = cs.Position.ToString();
+                                speedBox[deviceId - 1].Text = cs.Speed.ToString();
+                                targetBox[deviceId - 1].Text = cs.Target.ToString();
+                            }));
                         }
                     }
                     else
@@ -154,6 +114,10 @@ namespace OpticalFiberAssembly
                     }
                 }
                 catch (TimeoutException) { }
+                catch (IOException e)
+                {
+                    DebugMessage(e.ToString() + " 请检查串口设备。");
+                }
             }
         }
 
@@ -309,19 +273,14 @@ namespace OpticalFiberAssembly
         {
             try
             {
-                TextBox[] maxSpeedBox = [xMaxSpeedBox, yMaxSpeedBox, zMaxSpeedBox];
-                TextBox[] accBox = [xAccBox, yAccBox, zAccBox];
-                TextBox[] tarBox = [xTarBox, yTarBox, zTarBox];
-
                 for (byte i = 1; i < 4; i++)
                 {
                     var comm = new Communicate
                     {
                         Mode = Communicate.CommunicateMode.RUN,
                         DeviceId = i,
-                        MaxSpeed = float.Parse(maxSpeedBox[i - 1].Text),
-                        Acceleration = float.Parse(accBox[i - 1].Text),
-                        Target = float.Parse(tarBox[i - 1].Text)
+                        Speed = float.Parse(speedBox[i - 1].Text),
+                        Target = float.Parse(targetBox[i - 1].Text)
                     };
                     string mes = JsonSerializer.Serialize<Communicate>(comm);
                     serialPort.WriteLine(mes);
