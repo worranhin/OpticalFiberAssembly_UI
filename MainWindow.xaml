@@ -12,38 +12,56 @@
         TextElement.FontSize="14"        
         Title="光纤装配系统" Height="600" Width="800">
     <Window.Resources>
-        <Style TargetType="StackPanel">
-            <Setter Property="Margin" Value="0,0,0,10" />
-        </Style>
         <Style TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignTextBlock}">
-            <Setter Property="VerticalAlignment" Value="Bottom" />
             <Setter Property="FontSize" Value="15" />
+            <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
         <Style TargetType="ComboBox" BasedOn="{StaticResource MaterialDesignComboBox}">
             <Setter Property="MinWidth" Value="65" />
         </Style>
         <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource MaterialDesignTextBox}">
             <Setter Property="MinWidth" Value="36"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
     </Window.Resources>
     <StackPanel Margin="10">
-        <StackPanel Orientation="Horizontal">
-            <TextBlock Margin="0,0,5,0">端口</TextBlock>
-            <ComboBox x:Name="portBox" SelectionChanged="PortBox_SelectionChanged" />
-            <Button x:Name="PortRefresh" Click="PortRefresh_Click">刷新</Button>
-            <TextBlock Margin="10,0,5,0">波特率</TextBlock>
-            <ComboBox x:Name="baudBox" SelectionChanged="BaudBox_SelectionChanged">
-                <ComboBoxItem>9600</ComboBoxItem>
-                <ComboBoxItem>115200</ComboBoxItem>
-            </ComboBox>
-            <TextBlock Margin="10,0,0,0">状态</TextBlock>
-            <TextBlock Margin="5,0,0,0" x:Name="statusText">Lost</TextBlock>
-            <Button x:Name="btnConnect" Click="BtnConnect_Click">连接</Button>
-            <Button x:Name="btnStatus" Click="BtnStatus_Click">开始更新状态</Button>
-        </StackPanel>
-        <GroupBox Header="三自由度平移台">
-            <StackPanel>
-                <StackPanel Orientation="Horizontal">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel Orientation="Horizontal" Grid.Column="0" Margin="8">
+                <TextBlock>端口</TextBlock>
+                <ComboBox x:Name="portBox" SelectionChanged="PortBox_SelectionChanged"/>
+                <Button x:Name="PortRefresh" Click="PortRefresh_Click" Margin="5,0,0,0">刷新</Button>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Grid.Column="1">
+                <TextBlock VerticalAlignment="Center">波特率</TextBlock>
+                <ComboBox x:Name="baudBox" SelectionChanged="BaudBox_SelectionChanged">
+                    <ComboBoxItem>9600</ComboBoxItem>
+                    <ComboBoxItem>115200</ComboBoxItem>
+                </ComboBox>
+            </StackPanel>
+            <Button x:Name="btnConnect" Click="BtnConnect_Click" Margin="5" Grid.Column="2">连接</Button>
+            <Button x:Name="btnStatus" Click="BtnStatus_Click" Margin="5" Grid.Column="3">开始更新状态</Button>
+        </Grid>
+        <GroupBox Header="三自由度平移台" Margin="0,8,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <StackPanel Margin="5" Orientation="Horizontal" Grid.Row="0" Grid.Column="0">
                     <TextBlock Margin="0,0,10,0">X</TextBlock>
                     <TextBlock>位置</TextBlock>
                     <TextBox x:Name="xPosBox" IsEnabled="False"/>
@@ -56,11 +74,11 @@
                     <TextBlock>目标位置</TextBlock>
                     <TextBox x:Name="xTarBox"/>
                     <TextBlock FontSize="10">（单位：mm）</TextBlock>
-                    <Button Margin="5,0" x:Name="xForwardBtn" Click="BtnForward_Click">前进</Button>
-                    <Button Click="BtnBackward_Click">后退</Button>
-                    <Button Click="BtnZero_Click">置零</Button>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal">
+                <Button Margin="5,5,5,5" x:Name="xForwardBtn" Click="BtnForward_Click" Grid.Row="0" Grid.Column="1">前进</Button>
+                <Button Margin="5,5,5,5" x:Name="xBackwardBtn" Click="BtnBackward_Click" Cursor="Hand" Grid.Row="0" Grid.Column="2">后退</Button>
+                <Button Margin="5,5,5,5" x:Name="xZeroBtn" Click="BtnZero_Click" Grid.Row="0" Grid.Column="3">置零</Button>
+                <StackPanel Margin="5" Orientation="Horizontal" Grid.Row="1" Grid.Column="0">
                     <TextBlock Margin="0,0,10,0">Y</TextBlock>
                     <TextBlock>位置</TextBlock>
                     <TextBox x:Name="yPosBox" IsEnabled="False"/>
@@ -73,11 +91,11 @@
                     <TextBlock>目标位置</TextBlock>
                     <TextBox x:Name="yTarBox"/>
                     <TextBlock FontSize="10">（单位：mm）</TextBlock>
-                    <Button Margin="5,0">前进</Button>
-                    <Button>后退</Button>
-                    <Button Click="BtnZero_Click">置零</Button>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal">
+                <Button x:Name="yForwardBtn" Click="BtnForward_Click"  Margin="5,5,5,5" Grid.Row="1" Grid.Column="1">前进</Button>
+                <Button x:Name="yBackwardBtn" Click="BtnBackward_Click" Margin="5,5,5,5" Grid.Row="1" Grid.Column="2">后退</Button>
+                <Button x:Name="yZeroBtn" Click="BtnZero_Click" Margin="5,5,5,5" Grid.Row="1" Grid.Column="3">置零</Button>
+                <StackPanel Margin="5" Orientation="Horizontal" Grid.Row="2" Grid.Column="0">
                     <TextBlock Margin="0,0,10,0">Z</TextBlock>
                     <TextBlock>位置</TextBlock>
                     <TextBox x:Name="zPosBox" IsEnabled="False"/>
@@ -90,15 +108,19 @@
                     <TextBlock>目标位置</TextBlock>
                     <TextBox x:Name="zTarBox"/>
                     <TextBlock FontSize="10">（单位：mm）</TextBlock>
-                    <Button Margin="5,0">前进</Button>
-                    <Button>后退</Button>
-                    <Button Click="BtnZero_Click">置零</Button>
                 </StackPanel>
-                <StackPanel Orientation="Horizontal">
-                    <Button Click="BtnRun_Click" Style="{StaticResource MaterialDesignRaisedLightButton}">运行</Button>
-                    <Button Click="BtnStop_Click" Margin="5,0,0,0" Style="{StaticResource MaterialDesignRaisedAccentButton}">停止</Button>
-                </StackPanel>
-            </StackPanel>
+                <Button x:Name="zForwardBtn" Click="BtnForward_Click" Margin="5,5,5,5" Grid.Row="2" Grid.Column="1">前进</Button>
+                <Button x:Name="zBackwardBtn" Click="BtnBackward_Click" Margin="5,5,5,5" Grid.Row="2" Grid.Column="2">后退</Button>
+                <Button x:Name="zZeroBtn" Click="BtnZero_Click" Margin="5,5,5,5" Grid.Row="2" Grid.Column="3">置零</Button>
+                <Grid Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="4">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition/>
+                        <ColumnDefinition/>
+                    </Grid.ColumnDefinitions>
+                    <Button Click="BtnRun_Click" Margin="5" Grid.Column="0" Style="{StaticResource MaterialDesignRaisedLightButton}">运行</Button>
+                    <Button Click="BtnStop_Click" Margin="5" Grid.Column="1" Style="{StaticResource MaterialDesignRaisedAccentButton}">停止</Button>
+                </Grid>
+            </Grid>
         </GroupBox>
         <ScrollViewer MaxHeight="160" VerticalScrollBarVisibility="Auto">
             <TextBlock x:Name="debugBlock" />

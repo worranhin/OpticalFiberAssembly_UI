@@ -34,13 +34,35 @@ namespace OpticalFiberAssembly
         System.Timers.Timer statusTimer;
         bool xForwarding = false;
         bool xBackwarding = false;
+        bool yForwarding = false;
+        bool yBackwarding = false;
+        bool zForwarding = false;
+        bool zBackwarding = false;
+
+        bool[] forwardFlag;
+        bool[] backwardFlag;
+        TextBox[] speedBox;
+        TextBox[] maxSpeedBox;
+        TextBox[] accBox;
+        TextBox[] targetBox;
+
 
         public MainWindow()
         {
             InitializeComponent();
 
+            // 变量初始化
+            isUpdatingStatus = false;
+            forwardFlag = [xForwarding, yForwarding, zForwarding];
+            backwardFlag = [xBackwarding, yBackwarding, zBackwarding];
+            speedBox = [xSpeedBox, ySpeedBox, zSpeedBox];
+            maxSpeedBox = [xMaxSpeedBox, yMaxSpeedBox, zMaxSpeedBox];
+            accBox = [xAccBox, yAccBox, zAccBox];
+            targetBox = [xTarBox, yTarBox, zTarBox];
+
+
             GetPorts();
-            serialPort = new SerialPort("COM10", 9600);
+            serialPort = new SerialPort("COM10", 115200);
             stepperX = new Stepper(1, serialPort);
             readThread = new Thread(ReadSerial);
 
@@ -49,7 +71,6 @@ namespace OpticalFiberAssembly
             statusTimer.Elapsed += StatusTimerEvent;
             statusTimer.AutoReset = true;
 
-            isUpdatingStatus = false;
         }
 
 
@@ -86,7 +107,7 @@ namespace OpticalFiberAssembly
                         if (mes != null)
                         {
                             Communicate cs = JsonSerializer.Deserialize<Communicate>(mes);
-                            uint deviceId = 1;
+                            uint deviceId = cs.DeviceId;
                             switch (deviceId)
                             {
                                 case 1:
@@ -143,13 +164,17 @@ namespace OpticalFiberAssembly
         {
             try
             {
-                var comm = new Communicate
+                for (byte i = 1; i < 4; i++)
                 {
-                    Mode = Communicate.CommunicateMode.STATUS
-                };
-                string mes = JsonSerializer.Serialize<Communicate>(comm);
-                serialPort.WriteLine(mes);
-                //DebugMessage(mes + '\n');
+                    var comm = new Communicate
+                    {
+                        Mode = Communicate.CommunicateMode.STATUS,
+                        DeviceId = i
+                    };
+                    string mes = JsonSerializer.Serialize<Communicate>(comm);
+                    serialPort.WriteLine(mes);
+                    DebugMessage(mes + '\n');
+                }
             }
             catch (InvalidOperationException)
             {
@@ -284,16 +309,24 @@ namespace OpticalFiberAssembly
         {
             try
             {
-                var comm = new Communicate
+                TextBox[] maxSpeedBox = [xMaxSpeedBox, yMaxSpeedBox, zMaxSpeedBox];
+                TextBox[] accBox = [xAccBox, yAccBox, zAccBox];
+                TextBox[] tarBox = [xTarBox, yTarBox, zTarBox];
+
+                for (byte i = 1; i < 4; i++)
                 {
-                    Mode = Communicate.CommunicateMode.RUN,
-                    MaxSpeed = float.Parse(xMaxSpeedBox.Text),
-                    Acceleration = float.Parse(xAccBox.Text),
-                    Target = float.Parse(xTarBox.Text)
-                };
-                string mes = JsonSerializer.Serialize<Communicate>(comm);
-                serialPort.WriteLine(mes);
-                DebugMessage(mes + '\n');
+                    var comm = new Communicate
+                    {
+                        Mode = Communicate.CommunicateMode.RUN,
+                        DeviceId = i,
+                        MaxSpeed = float.Parse(maxSpeedBox[i - 1].Text),
+                        Acceleration = float.Parse(accBox[i - 1].Text),
+                        Target = float.Parse(tarBox[i - 1].Text)
+                    };
+                    string mes = JsonSerializer.Serialize<Communicate>(comm);
+                    serialPort.WriteLine(mes);
+                    DebugMessage(mes + '\n');
+                }
             }
             catch (FormatException)
             {
@@ -313,13 +346,18 @@ namespace OpticalFiberAssembly
         {
             try
             {
-                var comm = new Communicate
+                for (byte i = 1; i < 4; i++)
                 {
-                    Mode = Communicate.CommunicateMode.STOP
-                };
-                string mes = JsonSerializer.Serialize<Communicate>(comm);
-                serialPort.WriteLine(mes);
-                DebugMessage(mes + '\n');
+                    var comm = new Communicate
+                    {
+                        Mode = Communicate.CommunicateMode.STOP,
+                        DeviceId = i,
+
+                    };
+                    string mes = JsonSerializer.Serialize<Communicate>(comm);
+                    serialPort.WriteLine(mes);
+                    DebugMessage(mes + '\n');
+                }
             }
             catch (InvalidOperationException)
             {
@@ -327,24 +365,53 @@ namespace OpticalFiberAssembly
             }
         }
 
+        /// <summary>
+        /// 点动前进
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void BtnForward_Click(object sender, RoutedEventArgs e)
         {
             var btn = sender as Button;
-            //DebugMessage("Mouse down\n");
+            string n = btn.Name;
+            //DebugMessage("Forward\n");
             //DebugMessage(btn.Name + '\n');
-            //DebugMessage(e.ToString());
 
-            if (!xForwarding)
+            byte id = 255;
+
+            switch (n)
+            {
+                case "xForwardBtn":
+                    id = 1;
+                    break;
+                case "yForwardBtn":
+                    id = 2;
+                    break;
+                case "zForwardBtn":
+                    id = 3;
+                    break;
+                default:
+                    DebugMessage("Id not match.");
+                    break;
+            }
+
+            if (!forwardFlag[id - 1])
             {
                 try
                 {
+
                     var comm = new Communicate
                     {
                         Mode = Communicate.CommunicateMode.RUN_SPEED,
-                        Speed = float.Parse(xSpeedBox.Text)
+                        DeviceId = id,
+                        Speed = float.Parse(speedBox[id - 1].Text)
                     };
                     string mes = JsonSerializer.Serialize<Communicate>(comm);
                     serialPort.WriteLine(mes);
+
+                    btn.Style = this.FindResource("MaterialDesignRaisedLightButton") as Style;
+                    forwardFlag[id - 1] = true;
+
                     DebugMessage(mes + '\n');
                 }
                 catch (FormatException)
@@ -359,9 +426,6 @@ namespace OpticalFiberAssembly
                 {
                     MessageBox.Show("串口未打开");
                 }
-
-                btn.Style = this.FindResource("MaterialDesignRaisedLightButton") as Style;
-                xForwarding = true;
             }
             else
             {
@@ -369,37 +433,64 @@ namespace OpticalFiberAssembly
                 {
                     var comm = new Communicate
                     {
-                        Mode = Communicate.CommunicateMode.STOP
+                        Mode = Communicate.CommunicateMode.STOP,
+                        DeviceId = id
                     };
                     string mes = JsonSerializer.Serialize<Communicate>(comm);
                     serialPort.WriteLine(mes);
+
+                    btn.Style = this.FindResource("MaterialDesignRaisedButton") as Style;
+                    forwardFlag[id - 1] = false;
+
                     DebugMessage(mes + '\n');
                 }
                 catch (InvalidOperationException)
                 {
                     MessageBox.Show("串口未打开");
                 }
-
-                btn.Style = this.FindResource("MaterialDesignRaisedButton") as Style;
-                xForwarding = false;
             }
         }
 
+        /// <summary>
+        /// 点动后退
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void BtnBackward_Click(object sender, RoutedEventArgs e)
         {
             var btn = sender as Button;
+            string n = btn.Name;
 
-            if (!xBackwarding)
+            byte id = 255;
+            switch (n)
+            {
+                case "xBackwardBtn":
+                    id = 1;
+                    break;
+                case "yBackwardBtn":
+                    id = 2;
+                    break;
+                case "zBackwardBtn":
+                    id = 3;
+                    break;
+                default:
+                    break;
+            }
+
+            if (!backwardFlag[id - 1])
             {
                 try
                 {
                     var comm = new Communicate
                     {
                         Mode = Communicate.CommunicateMode.RUN_SPEED,
-                        Speed = float.Parse(xSpeedBox.Text) * -1
+                        DeviceId = id,
+                        Speed = float.Parse(speedBox[id - 1].Text) * -1
                     };
                     string mes = JsonSerializer.Serialize<Communicate>(comm);
                     serialPort.WriteLine(mes);
+                    btn.Style = this.FindResource("MaterialDesignRaisedLightButton") as Style;
+                    backwardFlag[id - 1] = true;
                     DebugMessage(mes + '\n');
                 }
                 catch (FormatException)
@@ -414,9 +505,6 @@ namespace OpticalFiberAssembly
                 {
                     MessageBox.Show("串口未打开");
                 }
-
-                btn.Style = this.FindResource("MaterialDesignRaisedLightButton") as Style;
-                xBackwarding = true;
             }
             else
             {
@@ -424,29 +512,49 @@ namespace OpticalFiberAssembly
                 {
                     var comm = new Communicate
                     {
-                        Mode = Communicate.CommunicateMode.STOP
+                        Mode = Communicate.CommunicateMode.STOP,
+                        DeviceId = id,
                     };
                     string mes = JsonSerializer.Serialize<Communicate>(comm);
                     serialPort.WriteLine(mes);
+                    btn.Style = this.FindResource("MaterialDesignRaisedButton") as Style;
+                    backwardFlag[id - 1] = false;
                     DebugMessage(mes + '\n');
                 }
                 catch (InvalidOperationException)
                 {
                     MessageBox.Show("串口未打开");
                 }
-
-                btn.Style = this.FindResource("MaterialDesignRaisedButton") as Style;
-                xBackwarding = false;
             }
         }
 
         private void BtnZero_Click(object sender, RoutedEventArgs e)
         {
+            var btn = sender as Button;
+            string n = btn.Name;
+
+            byte id = 255;
+            switch (n)
+            {
+                case "xZeroBtn":
+                    id = 1;
+                    break;
+                case "yZeroBtn":
+                    id = 2;
+                    break;
+                case "zZeroBtn":
+                    id = 3;
+                    break;
+                default:
+                    break;
+            }
+
             try
             {
                 var comm = new Communicate
                 {
-                    Mode = Communicate.CommunicateMode.Zero
+                    Mode = Communicate.CommunicateMode.ZERO,
+                    DeviceId = id
                 };
                 string mes = JsonSerializer.Serialize<Communicate>(comm);
                 serialPort.WriteLine(mes);
