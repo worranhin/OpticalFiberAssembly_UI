@@ -10,7 +10,7 @@
         Background="{DynamicResource MaterialDesignPaper}"
         TextElement.FontWeight="Medium"
         TextElement.FontSize="14"        
-        Title="光纤装配系统" Height="600" Width="800">
+        Title="光纤装配系统" Height="640" Width="800">
     <Window.Resources>
         <Style TargetType="TextBlock" BasedOn="{StaticResource MaterialDesignTextBlock}">
             <Setter Property="FontSize" Value="15" />
@@ -50,7 +50,7 @@
         <GroupBox Header="三自由度平移台" Margin="0,8,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto"/>
+                    <ColumnDefinition Width="3*"/>
                     <ColumnDefinition />
                     <ColumnDefinition />
                     <ColumnDefinition />
@@ -108,6 +108,53 @@
                     <Button Click="BtnRun_Click" Margin="5" Grid.Column="0" Style="{StaticResource MaterialDesignRaisedLightButton}">运行</Button>
                     <Button Click="BtnStop_Click" Margin="5" Grid.Column="1" Style="{StaticResource MaterialDesignRaisedAccentButton}">停止</Button>
                 </Grid>
+            </Grid>
+        </GroupBox>
+        <GroupBox Header="舵机">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Margin="5" Orientation="Horizontal" Grid.Column="0">
+                    <TextBlock Margin="0,0,5,0">舵机1</TextBlock>
+                    <TextBlock>角度</TextBlock>
+                    <TextBox/>
+                    <TextBlock FontSize="10">（单位：°）</TextBlock>
+                </StackPanel>
+                <Button Margin="5" Grid.Column="1">运行</Button>
+            </Grid>
+        </GroupBox>
+        <GroupBox Header="小蓝电机">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Margin="5" Orientation="Horizontal" Grid.Column="0">
+                    <TextBlock>位置</TextBlock>
+                    <TextBox/>
+                    <TextBlock>目标</TextBlock>
+                    <TextBox/>
+                    <TextBlock>速度</TextBlock>
+                    <TextBox/>
+                    <TextBlock FontSize="10">（单位：mm）</TextBlock>
+                </StackPanel>
+                <Button Margin="5" Grid.Column="1">运行</Button>
+            </Grid>
+        </GroupBox>
+        <GroupBox Header="电动推杆">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Margin="5" Orientation="Horizontal" Grid.Column="0">
+                    <TextBlock>电动推杆1</TextBlock>
+                </StackPanel>
+                <Button Margin="5" Grid.Column="1">前进</Button>
+                <Button Margin="5" Grid.Column="2">后退</Button>
             </Grid>
         </GroupBox>
         <ScrollViewer MaxHeight="160" VerticalScrollBarVisibility="Auto">
