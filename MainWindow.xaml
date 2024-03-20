@@ -128,19 +128,19 @@
         <GroupBox Header="小蓝电机">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="2*"/>
+                    <ColumnDefinition/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
                 <StackPanel Margin="5" Orientation="Horizontal" Grid.Column="0">
                     <TextBlock>位置</TextBlock>
-                    <TextBox/>
+                    <TextBox IsEnabled="False"/>
                     <TextBlock>目标</TextBlock>
-                    <TextBox/>
-                    <TextBlock>速度</TextBlock>
-                    <TextBox/>
+                    <TextBox x:Name="blueMotorTargetBox"/>
                     <TextBlock FontSize="10">（单位：mm）</TextBlock>
                 </StackPanel>
-                <Button Margin="5" Grid.Column="1">运行</Button>
+                <Button Margin="5" Grid.Column="1" Click="BtnBlueMotorRun_Click">运行</Button>
+                <Button Margin="5" Grid.Column="2" Click="BtnBlueMotorStop_Click">停止</Button>
             </Grid>
         </GroupBox>
         <GroupBox Header="电动推杆">

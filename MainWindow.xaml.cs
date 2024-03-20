@@ -25,13 +25,8 @@ namespace OpticalFiberAssembly
     /// </summary>
     public partial class MainWindow : Window
     {
-        SerialPort serialPort;
-        Stepper stepperX;
-        CancellationTokenSource readTaskCancelSource;
-        CancellationToken readTaskCancelToken;
-        Task readTask;
+        const int BLUE_MOTOR_ID = 11;
         bool isUpdatingStatus;
-        System.Timers.Timer statusTimer;
 
         bool[] forwardFlag = new bool[3];
         bool[] backwardFlag = new bool[3];
@@ -41,6 +36,12 @@ namespace OpticalFiberAssembly
         TextBox[] targetBox;
         TextBox[] positionBox;
 
+        SerialPort serialPort;
+        Stepper stepperX;
+        CancellationTokenSource readTaskCancelSource;
+        CancellationToken readTaskCancelToken;
+        Task readTask;
+        System.Timers.Timer statusTimer;
 
         public MainWindow()
         {
@@ -518,6 +519,61 @@ namespace OpticalFiberAssembly
                 string mes = JsonSerializer.Serialize<Communicate>(comm);
                 serialPort.WriteLine(mes);
                 DebugMessage(mes + '\n');
+            }
+            catch (InvalidOperationException)
+            {
+                MessageBox.Show("串口未打开");
+            }
+        }
+
+        private void BtnBlueMotorRun_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var comm = new Communicate
+                {
+                    Mode = Communicate.CommunicateMode.RUN,
+                    DeviceId = BLUE_MOTOR_ID,
+                    Target = float.Parse(blueMotorTargetBox.Text)
+                };
+                string mes = JsonSerializer.Serialize<Communicate>(comm);
+                serialPort.WriteLine(mes);
+                DebugMessage(mes + '\n');
+            }
+            catch (FormatException)
+            {
+                MessageBox.Show("请输入正确的格式");
+            }
+            catch (OverflowException)
+            {
+                MessageBox.Show("数值设置过大");
+            }
+            catch (InvalidOperationException)
+            {
+                MessageBox.Show("串口未打开");
+            }
+        }
+
+        private void BtnBlueMotorStop_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var comm = new Communicate
+                {
+                    Mode = Communicate.CommunicateMode.STOP,
+                    DeviceId = BLUE_MOTOR_ID,
+                };
+                string mes = JsonSerializer.Serialize<Communicate>(comm);
+                serialPort.WriteLine(mes);
+                DebugMessage(mes + '\n');
+            }
+            catch (FormatException)
+            {
+                MessageBox.Show("请输入正确的格式");
+            }
+            catch (OverflowException)
+            {
+                MessageBox.Show("数值设置过大");
             }
             catch (InvalidOperationException)
             {
